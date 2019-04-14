@@ -15,6 +15,7 @@ It uses curl (uploading to ptpimg.me), sox (generating spectrograms to upload/vi
 ## Clone repository
 ```
 git clone https://cryptid.cc/lost/csfru.git
+cd csfru
 ```
 
 ## Personal use in same directory
