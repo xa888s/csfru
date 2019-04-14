@@ -4,12 +4,14 @@ do
     case "${option}"
     in
     a) APIKEY="${OPTARG}";;
-    o) SPECTROGRAMSFOLDER=$(realpath "${OPTARG}");;
-    i) ALBUMFOLDER=$(realpath "${OPTARG}");;
+    i) ALBUMFOLDER=$(realpath "${OPTARG}"); SPECTROGRAMSFOLDER="$ALBUMFOLDER/Spectrograms";;
+    o) SPECTROGRAMSFOLDER=$(realpath "${OPTARG}/${ALBUMFOLDER##*/}");;
     u) UPLOAD="true";;
     *) HELP="true";;
     esac
 done 
+
+echo $SPECTROGRAMSFOLDER
 
 if [ "$HELP" = "true" ]
 then
@@ -38,10 +40,10 @@ then
     exit
 fi
 
-if [ -z "$SPECTROGRAMSFOLDER" ] 
-then
-    mkdir -p "$ALBUMFOLDER/Spectrograms"
-    SPECTROGRAMSFOLDER="$ALBUMFOLDER/Spectrograms"
+make_spectrograms()
+{
+    SPECTROGRAMSFOLDER=$1
+    mkdir -p "$SPECTROGRAMSFOLDER"
     echo "Tracklist: " > "$SPECTROGRAMSFOLDER/albumdescription.txt"
     echo " " >> "$SPECTROGRAMSFOLDER/albumdescription.txt"
     for SONG in "$ALBUMFOLDER"/*.flac;
@@ -52,21 +54,16 @@ then
 	echo "$SPECTROGRAMSONG Done!"
 	echo "${SPECTROGRAMSONG%.*}" >> "$SPECTROGRAMSFOLDER/albumdescription.txt"
     done
+}
+
+if [ -z "$SPECTROGRAMSFOLDER" ] 
+then
+    make_spectrograms "$SPECTROGRAMSFOLDER"
+
 elif [ -d "$SPECTROGRAMSFOLDER" ]
 then
-    ALBUMFOLDERNAME="${ALBUMFOLDER##*/}"
-    mkdir -p "$SPECTROGRAMSFOLDER/$ALBUMFOLDERNAME"
-    echo "Tracklist: " > "$SPECTROGRAMSFOLDER/albumdescription.txt"
-    echo " " >> "$SPECTROGRAMSFOLDER/albumdescription.txt"
-    for SONG in "$ALBUMFOLDER"/*.flac;
-    do
-	SPECTROGRAMSONG="${SONG##*/}"
-        SPECTROGRAM="${SPECTROGRAMSONG%.*}.png"
-        sox "$SONG" -n remix 1 spectrogram -x 3000 -y 513 -z 120 -w Kaiser -o "$SPECTROGRAMSFOLDER/$ALBUMFOLDERNAME/$SPECTROGRAM"
-	echo "$SPECTROGRAMSONG Done!"
-	echo "${SPECTROGRAMSONG%.*}" >> "$SPECTROGRAMSFOLDER/$ALBUMFOLDERNAME/albumdescription.txt"
-    done
-    SPECTROGRAMSFOLDER="$SPECTROGRAMSFOLDER/$ALBUMFOLDERNAME"
+    make_spectrograms "$SPECTROGRAMSFOLDER"
+
 else
     echo "-o error"
     echo "Please specify a directory that exists!"
