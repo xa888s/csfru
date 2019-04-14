@@ -1,1 +1,99 @@
-/bin/csfru
+#!/bin/sh
+while getopts a:o:i:*u option
+do
+    case "${option}"
+    in
+    a) APIKEY="${OPTARG}";;
+    o) SPECTROGRAMSFOLDER=$(realpath "${OPTARG}");;
+    i) ALBUMFOLDER=$(realpath "${OPTARG}");;
+    u) UPLOAD="true";;
+    *) HELP="true";;
+    esac
+done 
+
+if [ "$HELP" = "true" ]
+then
+	echo "Usage: "
+	echo "csfru [options] -i ALBUMFOLDER"
+	echo " "
+	echo "Options: "
+	echo "-a PTPIMGAPIKEY"
+	echo "-o SPECTROGRAMSFOLDER (if not specified will output in ALBUMFOLDER)"
+	echo "-u (whether to upload or not)"
+	exit
+fi
+
+if [ -z "$ALBUMFOLDER" ]
+then
+    echo "${0##*/}: has exited because an input directory was not specified"
+    exit
+fi
+
+if [ ! -d "$ALBUMFOLDER" ]
+then
+    echo "-i error"
+    echo "Please specify a directory that exists!"
+    echo "Specified directory: "
+    echo "$ALBUMFOLDER"
+    exit
+fi
+
+if [ -z "$SPECTROGRAMSFOLDER" ] 
+then
+    cd "$ALBUMFOLDER" || exit
+    mkdir -p "Spectrograms"
+    SPECTROGRAMSFOLDER="$ALBUMFOLDER/Spectrograms"
+    echo "Tracklist: " > "$SPECTROGRAMSFOLDER/albumdescription.txt"
+    echo " " >> "$SPECTROGRAMSFOLDER/albumdescription.txt"
+    for SONG in *.flac;
+    do
+        SPECTROGRAM="${SONG%.*}.png"
+        sox "$SONG" -n remix 1 spectrogram -x 3000 -y 513 -z 120 -w Kaiser -o "$SPECTROGRAM"
+        mv "$SPECTROGRAM" "${SPECTROGRAMSFOLDER}/"
+	echo "$SONG Done!"
+	echo "${SONG%.*}" >> "$SPECTROGRAMSFOLDER/albumdescription.txt"
+    done
+elif [ -d "$SPECTROGRAMSFOLDER" ]
+then
+    cd "$ALBUMFOLDER" || exit
+    ALBUMFOLDERNAME="${PWD##*/}"
+    mkdir -p "$SPECTROGRAMSFOLDER/$ALBUMFOLDERNAME"
+    echo "Tracklist: " > "$SPECTROGRAMSFOLDER/albumdescription.txt"
+    echo " " >> "$SPECTROGRAMSFOLDER/albumdescription.txt"
+    for SONG in *.flac;
+    do
+        SPECTROGRAM="${SONG%.*}.png"
+        sox "$SONG" -n remix 1 spectrogram -x 3000 -y 513 -z 120 -w Kaiser -o "$SPECTROGRAM"
+        mv "$SPECTROGRAM" "${SPECTROGRAMSFOLDER}/$ALBUMFOLDERNAME"
+	echo "$SONG Done!"
+	echo "${SONG%.*}" >> "$SPECTROGRAMSFOLDER/albumdescription.txt"
+    done
+    SPECTROGRAMSFOLDER="$SPECTROGRAMSFOLDER/$ALBUMFOLDERNAME"
+else
+    echo "-o error"
+    echo "Please specify a directory that exists!"
+    echo "Specified directory: "
+    echo "$SPECTROGRAMSFOLDER"
+    exit
+fi
+
+if [ "$UPLOAD" = "true" ]
+then
+    xclip -sel c < "$SPECTROGRAMSFOLDER/albumdescription.txt"
+    echo "Copied albumdescription.txt to clipboard"
+    read -p "Press enter when done pasting." input
+    cd "$SPECTROGRAMSFOLDER" || exit
+    echo "Spectrograms:" > releasedescription.txt
+    echo " " >> releasedescription.txt
+    for SONG in *.png;
+    do
+        echo "Uploading ${SONG%.*}"
+	SONGLINK=$(curl -F "file-upload[0]=@$(realpath "$SONG")" -F api_key="$APIKEY" "https://ptpimg.me/upload.php" | awk -F ":|," '!(NR%4){print p$2}{p=$2}'| sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
+        echo "${SONG%.*} Done!"
+        echo "${SONG%.*}" >> releasedescription.txt
+        echo "[img]$SONGLINK[/img]" >> releasedescription.txt
+        echo " " >> releasedescription.txt
+    done
+    xclip -sel c < "$SPECTROGRAMSFOLDER/releasedescription.txt"
+    echo "Copied releasedescription.txt to clipboard!"
+fi
