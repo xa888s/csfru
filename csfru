@@ -40,33 +40,31 @@ fi
 
 if [ -z "$SPECTROGRAMSFOLDER" ] 
 then
-    cd "$ALBUMFOLDER" || exit
-    mkdir -p "Spectrograms"
+    mkdir -p "$ALBUMFOLDER/Spectrograms"
     SPECTROGRAMSFOLDER="$ALBUMFOLDER/Spectrograms"
     echo "Tracklist: " > "$SPECTROGRAMSFOLDER/albumdescription.txt"
     echo " " >> "$SPECTROGRAMSFOLDER/albumdescription.txt"
-    for SONG in *.flac;
+    for SONG in "$ALBUMFOLDER"/*.flac;
     do
-        SPECTROGRAM="${SONG%.*}.png"
-        sox "$SONG" -n remix 1 spectrogram -x 3000 -y 513 -z 120 -w Kaiser -o "$SPECTROGRAM"
-        mv "$SPECTROGRAM" "${SPECTROGRAMSFOLDER}/"
-	echo "$SONG Done!"
-	echo "${SONG%.*}" >> "$SPECTROGRAMSFOLDER/albumdescription.txt"
+	SPECTROGRAMSONG="${SONG##*/}"
+	SPECTROGRAM="${SPECTROGRAMSONG%.*}.png"
+        sox "$SONG" -n remix 1 spectrogram -x 3000 -y 513 -z 120 -w Kaiser -o "$SPECTROGRAMSFOLDER/$SPECTROGRAM"
+	echo "$SPECTROGRAMSONG Done!"
+	echo "${SPECTROGRAMSONG%.*}" >> "$SPECTROGRAMSFOLDER/albumdescription.txt"
     done
 elif [ -d "$SPECTROGRAMSFOLDER" ]
 then
-    cd "$ALBUMFOLDER" || exit
-    ALBUMFOLDERNAME="${PWD##*/}"
+    ALBUMFOLDERNAME="${ALBUMFOLDER##*/}"
     mkdir -p "$SPECTROGRAMSFOLDER/$ALBUMFOLDERNAME"
     echo "Tracklist: " > "$SPECTROGRAMSFOLDER/albumdescription.txt"
     echo " " >> "$SPECTROGRAMSFOLDER/albumdescription.txt"
-    for SONG in *.flac;
+    for SONG in "$ALBUMFOLDER"/*.flac;
     do
-        SPECTROGRAM="${SONG%.*}.png"
-        sox "$SONG" -n remix 1 spectrogram -x 3000 -y 513 -z 120 -w Kaiser -o "$SPECTROGRAM"
-        mv "$SPECTROGRAM" "${SPECTROGRAMSFOLDER}/$ALBUMFOLDERNAME"
-	echo "$SONG Done!"
-	echo "${SONG%.*}" >> "$SPECTROGRAMSFOLDER/albumdescription.txt"
+	SPECTROGRAMSONG="${SONG##*/}"
+        SPECTROGRAM="${SPECTROGRAMSONG%.*}.png"
+        sox "$SONG" -n remix 1 spectrogram -x 3000 -y 513 -z 120 -w Kaiser -o "$SPECTROGRAMSFOLDER/$ALBUMFOLDERNAME/$SPECTROGRAM"
+	echo "$SPECTROGRAMSONG Done!"
+	echo "${SPECTROGRAMSONG%.*}" >> "$SPECTROGRAMSFOLDER/$ALBUMFOLDERNAME/albumdescription.txt"
     done
     SPECTROGRAMSFOLDER="$SPECTROGRAMSFOLDER/$ALBUMFOLDERNAME"
 else
@@ -82,17 +80,17 @@ then
     xclip -sel c < "$SPECTROGRAMSFOLDER/albumdescription.txt"
     echo "Copied albumdescription.txt to clipboard"
     read -p "Press enter when done pasting." input
-    cd "$SPECTROGRAMSFOLDER" || exit
-    echo "Spectrograms:" > releasedescription.txt
-    echo " " >> releasedescription.txt
-    for SONG in *.png;
+    echo "Spectrograms:" > "$SPECTROGRAMSFOLDER/releasedescription.txt"
+    echo " " >> "$SPECTROGRAMSFOLDER/releasedescription.txt"
+    for SONG in "$SPECTROGRAMSFOLDER"/*.png;
     do
-        echo "Uploading ${SONG%.*}"
+	SONGNAME="${SONG##*/}"
+        echo "Uploading ${SONGNAME%.*}"
 	SONGLINK=$(curl -F "file-upload[0]=@$(realpath "$SONG")" -F api_key="$APIKEY" "https://ptpimg.me/upload.php" | awk -F ":|," '!(NR%4){print p$2}{p=$2}'| sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
-        echo "${SONG%.*} Done!"
-        echo "${SONG%.*}" >> releasedescription.txt
-        echo "[img]$SONGLINK[/img]" >> releasedescription.txt
-        echo " " >> releasedescription.txt
+        echo "${SONGNAME%.*} Done!"
+        echo "${SONGNAME%.*}" >> "$SPECTROGRAMSFOLDER/releasedescription.txt"
+        echo "[img]$SONGLINK[/img]" >> "$SPECTROGRAMSFOLDER/releasedescription.txt"
+        echo " " >> "$SPECTROGRAMSFOLDER/releasedescription.txt"
     done
     xclip -sel c < "$SPECTROGRAMSFOLDER/releasedescription.txt"
     echo "Copied releasedescription.txt to clipboard!"
