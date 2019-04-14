@@ -11,8 +11,6 @@ do
     esac
 done 
 
-echo $SPECTROGRAMSFOLDER
-
 if [ "$HELP" = "true" ]
 then
 	echo "Usage: "
