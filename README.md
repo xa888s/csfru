@@ -12,6 +12,11 @@ It uses curl (uploading to ptpimg.me), sox (generating spectrograms to upload/vi
 
 # Usage
 
+## Clone repository
+```
+git clone https://cryptid.cc/lost/csfru.git
+```
+
 ## Personal use in same directory
 
 If I wanted to create spectrograms for personal use and not upload it anywhere I could do this:
