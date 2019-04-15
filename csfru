@@ -7,29 +7,25 @@ do
     i) ALBUMFOLDER=$(realpath "${OPTARG}"); SPECTROGRAMSFOLDER="$ALBUMFOLDER/Spectrograms";;
     o) SPECTROGRAMSFOLDER=$(realpath "${OPTARG}/${ALBUMFOLDER##*/}");;
     u) UPLOAD="true";;
-    *) HELP="true";;
+    *) 	    
+    echo "Usage: "
+    echo "csfru [options] -i ALBUMFOLDER"
+    echo " "
+    echo "Options: "
+    echo "-a PTPIMGAPIKEY"
+    echo "-o SPECTROGRAMSFOLDER (if not specified will output in ALBUMFOLDER)"
+    echo "-u (whether to upload or not)"
+    exit
+    ;;
     esac
-done 
-
-if [ "$HELP" = "true" ]
-then
-	echo "Usage: "
-	echo "csfru [options] -i ALBUMFOLDER"
-	echo " "
-	echo "Options: "
-	echo "-a PTPIMGAPIKEY"
-	echo "-o SPECTROGRAMSFOLDER (if not specified will output in ALBUMFOLDER)"
-	echo "-u (whether to upload or not)"
-	exit
-fi
+done
 
 if [ -z "$ALBUMFOLDER" ]
 then
     echo "${0##*/}: has exited because an input directory was not specified"
     exit
-fi
 
-if [ ! -d "$ALBUMFOLDER" ]
+elif [ ! -d "$ALBUMFOLDER" ]
 then
     echo "-i error"
     echo "Please specify a directory that exists!"
