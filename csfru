@@ -35,7 +35,8 @@ then
     exit
 fi
 
-curl_check() {
+curl_check() 
+{
     if [[ "$SONG" == *","* ]]
     then
         SONGLINK=$(curl -F "file-upload[0]=@\"$SONG\"" -F api_key="$APIKEY" "https://ptpimg.me/upload.php" | awk -F ":|," '!(NR%4){print p$2}{p=$2}'| sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
@@ -45,7 +46,8 @@ curl_check() {
 }
 
 
-chosensox() {
+chosensox() 
+{
     if [ "$SMALL" ]
     then
 	sox "$SONG" -n spectrogram -o "$SPECTROGRAMSFOLDER/$SPECTROGRAM"
