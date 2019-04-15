@@ -70,7 +70,7 @@ then
     xclip -sel c < "$SPECTROGRAMSFOLDER/albumdescription.txt"
     echo "Copied albumdescription.txt to clipboard"
     read -p "Press enter when done pasting." input
-    echo "[spoiler=Spectrograms:]" > "$SPECTROGRAMSFOLDER/releasedescription.txt"
+    printf "[spoiler=Spectrograms]" > "$SPECTROGRAMSFOLDER/releasedescription.txt"
     for SONG in "$SPECTROGRAMSFOLDER"/*.png;
     do
 	SONGNAME="${SONG##*/}"
