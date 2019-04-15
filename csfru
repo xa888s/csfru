@@ -36,7 +36,7 @@ then
 fi
 
 chosensox() {
-    if [ "$SMALL" == "true" ]
+    if [ "$SMALL" ]
     then
 	sox "$SONG" -n spectrogram -o "$SPECTROGRAMSFOLDER/$SPECTROGRAM"
     else
