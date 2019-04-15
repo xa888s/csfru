@@ -1,11 +1,12 @@
 #!/bin/sh
-while getopts a:o:i:* option
+while getopts a:o:i:*s option
 do
     case "${option}"
     in
     a) APIKEY="${OPTARG}";;
     i) ALBUMFOLDER=$(realpath "${OPTARG}"); SPECTROGRAMSFOLDER="$ALBUMFOLDER/Spectrograms";;
     o) SPECTROGRAMSFOLDER=$(realpath "${OPTARG}/${ALBUMFOLDER##*/}");;
+    s) SMALL="true";;
     *) 	    
     echo "Usage: "
     echo "csfru [options] -i ALBUMFOLDER"
@@ -14,6 +15,7 @@ do
     echo "-a PTPIMGAPIKEY"
     echo "-o SPECTROGRAMSFOLDER (if not specified will output in ALBUMFOLDER)"
     echo "-u (whether to upload or not)"
+    echo "-s (for small sized spectrograms)"
     exit
     ;;
     esac
@@ -33,6 +35,15 @@ then
     exit
 fi
 
+chosensox() {
+    if [ "$SMALL" == "true" ]
+    then
+	sox "$SONG" -n spectrogram -o "$SPECTROGRAMSFOLDER/$SPECTROGRAM"
+    else
+        sox "$SONG" -n remix 1 spectrogram -x 3000 -y 513 -z 120 -w Kaiser -o "$SPECTROGRAMSFOLDER/$SPECTROGRAM"
+    fi
+}
+
 make_spectrograms()
 {
     SPECTROGRAMSFOLDER=$1
@@ -43,7 +54,7 @@ make_spectrograms()
     do
 	SPECTROGRAMSONG="${SONG##*/}"
 	SPECTROGRAM="${SPECTROGRAMSONG%.*}.png"
-        sox "$SONG" -n remix 1 spectrogram -x 3000 -y 513 -z 120 -w Kaiser -o "$SPECTROGRAMSFOLDER/$SPECTROGRAM"
+	chosensox
 	echo "$SPECTROGRAMSONG Done!"
 	echo "${SPECTROGRAMSONG%.*}" >> "$SPECTROGRAMSFOLDER/albumdescription.txt"
     done

@@ -46,3 +46,10 @@ A full command would look like this:
 ```
 ./csfru -i /path/to/albumfolder -a YOURAPIKEY
 ```
+
+## Other
+
+If the spectrograms are too big you can use "-s" to make it output the default sized ones:
+```
+./csfru -i /path/to/albumfolder -s
+```
