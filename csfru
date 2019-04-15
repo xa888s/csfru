@@ -4,16 +4,16 @@ do
     case "${option}"
     in
     a) APIKEY="${OPTARG}";;
-    i) ALBUMFOLDER=$(realpath "${OPTARG}"); SPECTROGRAMSFOLDER="$ALBUMFOLDER/Spectrograms";;
-    o) SPECTROGRAMSFOLDER=$(realpath "${OPTARG}/${ALBUMFOLDER##*/}");;
+    i) ALBUMDIR=$(realpath "${OPTARG}"); SPECTROGRAMSDIR="$ALBUMDIR/Spectrograms";;
+    o) SPECTROGRAMSDIR=$(realpath "${OPTARG}/${ALBUMDIR##*/}"); BASESPECTROGRAMSDIR=${OPTARG};;
     s) SMALL="true";;
     *) 	    
     echo "Usage: "
-    echo "csfru [options] -i ALBUMFOLDER"
+    echo "csfru [options] -i ALBUMDIR"
     echo " "
     echo "Options: "
     echo "-a PTPIMGAPIKEY"
-    echo "-o SPECTROGRAMSFOLDER (if not specified will output in ALBUMFOLDER)"
+    echo "-o SPECTROGRAMSDIR (if not specified will output in ALBUMDIR)"
     echo "-u (whether to upload or not)"
     echo "-s (for small sized spectrograms)"
     exit
@@ -21,68 +21,72 @@ do
     esac
 done
 
-if [ -z "$ALBUMFOLDER" ]
+if [ -z "$ALBUMDIR" ]
 then
     echo "${0##*/}: has exited because an input directory was not specified"
     exit
 
-elif [ ! -d "$ALBUMFOLDER" ]
+elif [ ! -d "$ALBUMDIR" ]
 then
     echo "-i error"
     echo "Please specify a directory that exists!"
     echo "Specified directory: "
-    echo "$ALBUMFOLDER"
+    echo "$ALBUMDIR"
     exit
 fi
 
-if [ ! -d "$SPECTROGRAMSFOLDER" ]
+if [ ! -d "$BASESPECTROGRAMSDIR" ]
 then
     echo "-o error"
     echo "Please specify a directory that exists!"
     echo "Specified directory: "
-    echo "$SPECTROGRAMSFOLDER"
+    echo "$SPECTROGRAMSDIR"
     exit
 fi
 
-mkdir -p "$SPECTROGRAMSFOLDER"
-echo "Tracklist: " > "$SPECTROGRAMSFOLDER/albumdescription.txt"
-echo " " >> "$SPECTROGRAMSFOLDER/albumdescription.txt"
-for SONG in "$ALBUMFOLDER"/*.flac;
+mkdir -p "$SPECTROGRAMSDIR"
+for SONG in "$ALBUMDIR"/*.flac;
 do
     SPECTROGRAMSONG="${SONG##*/}"
     SPECTROGRAM="${SPECTROGRAMSONG%.*}.png"
     if [ "$SMALL" ]
     then
-        sox "$SONG" -n spectrogram -o "$SPECTROGRAMSFOLDER/$SPECTROGRAM"
+        sox "$SONG" -n spectrogram -o "$SPECTROGRAMSDIR/$SPECTROGRAM"
     else
-        sox "$SONG" -n remix 1 spectrogram -x 3000 -y 513 -z 120 -w Kaiser -o "$SPECTROGRAMSFOLDER/$SPECTROGRAM"
+        sox "$SONG" -n remix 1 spectrogram -x 3000 -y 513 -z 120 -w Kaiser -o "$SPECTROGRAMSDIR/$SPECTROGRAM"
     fi
     echo "$SPECTROGRAMSONG Done!"
-    echo "${SPECTROGRAMSONG%.*}" >> "$SPECTROGRAMSFOLDER/albumdescription.txt"
 done
 
 if [ "$APIKEY" ]
 then
-    xclip -sel c < "$SPECTROGRAMSFOLDER/albumdescription.txt"
+    echo "Creating albumdescription.txt"
+    echo "Tracklist: " > "$SPECTROGRAMSDIR/albumdescription.txt"
+    echo " " >> "$SPECTROGRAMSDIR/albumdescription.txt"
+    for SPECTROGRAM in "$SPECTROGRAMSDIR"/*.png;
+    do
+        echo "${SPECTROGRAM%.*}" >> "$SPECTROGRAMSDIR/albumdescription.txt"
+    done
+    xclip -sel c < "$SPECTROGRAMSDIR/albumdescription.txt"
     echo "Copied albumdescription.txt to clipboard"
     read -p "Press enter when done pasting." input
-    printf "[spoiler=Spectrograms]" > "$SPECTROGRAMSFOLDER/releasedescription.txt"
-    for SONG in "$SPECTROGRAMSFOLDER"/*.png;
+    printf "[spoiler=Spectrograms]" > "$SPECTROGRAMSDIR/releasedescription.txt"
+    for SPECTROGRAM in "$SPECTROGRAMSDIR"/*.png;
     do
-	SONGNAME="${SONG##*/}"
+	SONGNAME="${SPECTROGRAM##*/}"
         echo "Uploading ${SONGNAME%.*}"
-        if [[ "$SONG" == *","* ]]
+        if [[ "$SPECTROGRAM" == *","* ]]
         then
-            SONGLINK=$(curl -F "file-upload[0]=@\"$SONG\"" -F api_key="$APIKEY" "https://ptpimg.me/upload.php" | awk -F ":|," '!(NR%4){print p$2}{p=$2}'| sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
+            SPECTROGRAMLINK=$(curl -F "file-upload[0]=@\"$SPECTROGRAM\"" -F api_key="$APIKEY" "https://ptpimg.me/upload.php" | awk -F ":|," '!(NR%4){print p$2}{p=$2}'| sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
         else
-            SONGLINK=$(curl -F "file-upload[0]=@$(realpath "$SONG")" -F api_key="$APIKEY" "https://ptpimg.me/upload.php" | awk -F ":|," '!(NR%4){print p$2}{p=$2}'| sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
+            SPECTROGRAMLINK=$(curl -F "file-upload[0]=@$(realpath "$SPECTROGRAM")" -F api_key="$APIKEY" "https://ptpimg.me/upload.php" | awk -F ":|," '!(NR%4){print p$2}{p=$2}'| sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
         fi
         echo "${SONGNAME%.*} Done!"
-        echo "${SONGNAME%.*}" >> "$SPECTROGRAMSFOLDER/releasedescription.txt"
-        echo "[img]$SONGLINK[/img]" >> "$SPECTROGRAMSFOLDER/releasedescription.txt"
-        echo " " >> "$SPECTROGRAMSFOLDER/releasedescription.txt"
+        echo "${SONGNAME%.*}" >> "$SPECTROGRAMSDIR/releasedescription.txt"
+        echo "[img]$SPECTROGRAMLINK[/img]" >> "$SPECTROGRAMSDIR/releasedescription.txt"
+        echo " " >> "$SPECTROGRAMSDIR/releasedescription.txt"
     done
-    echo "[/spoiler]" >> "$SPECTROGRAMSFOLDER/releasedescription.txt"
-    xclip -sel c < "$SPECTROGRAMSFOLDER/releasedescription.txt"
+    echo "[/spoiler]" >> "$SPECTROGRAMSDIR/releasedescription.txt"
+    xclip -sel c < "$SPECTROGRAMSDIR/releasedescription.txt"
     echo "Copied releasedescription.txt to clipboard!"
 fi
