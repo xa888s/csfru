@@ -64,27 +64,21 @@ make_spectrograms()
     do
 	SPECTROGRAMSONG="${SONG##*/}"
 	SPECTROGRAM="${SPECTROGRAMSONG%.*}.png"
-	chosensox
+	chosen_sox
 	echo "$SPECTROGRAMSONG Done!"
 	echo "${SPECTROGRAMSONG%.*}" >> "$SPECTROGRAMSFOLDER/albumdescription.txt"
     done
 }
 
-if [ -z "$SPECTROGRAMSFOLDER" ] 
+if [ ! -d "$SPECTROGRAMSFOLDER" ]
 then
-    make_spectrograms
-
-elif [ -d "$SPECTROGRAMSFOLDER" ]
-then
-    make_spectrograms
-
-else
     echo "-o error"
     echo "Please specify a directory that exists!"
     echo "Specified directory: "
     echo "$SPECTROGRAMSFOLDER"
     exit
 fi
+make_spectrograms
 
 if [ "$APIKEY" ]
 then
