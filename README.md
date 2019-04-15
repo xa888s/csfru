@@ -4,7 +4,7 @@ csfru stands for **C**reate **S**pectrograms **F**or **R**ED **U**ploads
 
 # Use case
 
-This tool allows you to automate the creation of spectrograms for RED uploads in under 100 lines of code.
+This tool allows you to automate the creation of spectrograms for RED uploads in 118 lines of code.
 
 # Dependencies
 
