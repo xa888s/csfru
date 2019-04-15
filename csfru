@@ -4,21 +4,8 @@ do
     case "${option}"
     in
     a) APIKEY="${OPTARG}";;
-    i) ALBUMDIR=$(realpath -e "${OPTARG}") ||
-    echo "-i error"
-    echo "Please specify a directory that exists!"
-    echo "Specified directory: "
-    echo "$ALBUMDIR"
-    exit; 
-    SPECTROGRAMSDIR="$ALBUMDIR/Spectrograms";;
-    o) BASESPECTROGRAMSDIR=$(realpath -e "${OPTARG}") ||
-    echo "-o error"
-    echo "Please specify a directory that exists!"
-    echo "Specified directory: "
-    echo "$BASESPECTROGRAMSDIR"
-    exit;
-    SPECTROGRAMSDIR=$(realpath "${OPTARG}/${ALBUMDIR##*/}")
-    ;;
+    i) ALBUMDIR=$(realpath "${OPTARG}"); SPECTROGRAMSDIR="$ALBUMDIR/Spectrograms"; BASESPECTROGRAMSDIR="$ALBUMDIR";;
+    o) BASESPECTROGRAMSDIR=$(realpath "${OPTARG}"); SPECTROGRAMSDIR=$(realpath "${OPTARG}/${ALBUMDIR##*/}");;
     s) SMALL="true";;
     *) 	    
     echo "Usage: "
@@ -38,7 +25,26 @@ if [ ! "$ALBUMDIR" ]
 then
     echo "${0##*/}: has exited because an input directory was not specified"
     exit
+fi
 
+if [ ! -d "$ALBUMDIR" ]
+then 
+    echo "-i error"
+    echo "Please specify a directory that exists!"
+    echo "Specified directory: "
+    echo "$ALBUMDIR"
+    exit
+fi
+
+if [ ! -d "$BASESPECTROGRAMSDIR" ]
+then
+    echo "-o error"
+    echo "Please specify a directory that exists!"
+    echo "Specified directory: "
+    echo "$BASESPECTROGRAMSDIR"
+    exit
+fi
+    
 mkdir -p "$SPECTROGRAMSDIR"
 for SONG in "$ALBUMDIR"/*.flac;
 do
