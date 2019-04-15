@@ -35,6 +35,16 @@ then
     exit
 fi
 
+curl_check() {
+    if [[ "$SONG" == *","* ]]
+    then
+        SONGLINK=$(curl -F "file-upload[0]=\"@$SONG\"" -F api_key="$APIKEY" "https://ptpimg.me/upload.php" | awk -F ":|," '!(NR%4){print p$2}{p=$2}'| sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
+    else
+	SONGLINK=$(curl -F "file-upload[0]=@$(realpath "$SONG")" -F api_key="$APIKEY" "https://ptpimg.me/upload.php" | awk -F ":|," '!(NR%4){print p$2}{p=$2}'| sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
+    fi
+}
+
+
 chosensox() {
     if [ "$SMALL" ]
     then
@@ -86,8 +96,8 @@ then
     do
 	SONGNAME="${SONG##*/}"
         echo "Uploading ${SONGNAME%.*}"
-	SONGLINK=$(curl -F "file-upload[0]=@$(realpath "$SONG")" -F api_key="$APIKEY" "https://ptpimg.me/upload.php" | awk -F ":|," '!(NR%4){print p$2}{p=$2}'| sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
-        echo "${SONGNAME%.*} Done!"
+        curl_check
+	echo "${SONGNAME%.*} Done!"
         echo "${SONGNAME%.*}" >> "$SPECTROGRAMSFOLDER/releasedescription.txt"
         echo "[img]$SONGLINK[/img]" >> "$SPECTROGRAMSFOLDER/releasedescription.txt"
         echo " " >> "$SPECTROGRAMSFOLDER/releasedescription.txt"
