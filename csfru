@@ -1,12 +1,11 @@
 #!/bin/sh
-while getopts a:o:i:*u option
+while getopts a:o:i:* option
 do
     case "${option}"
     in
     a) APIKEY="${OPTARG}";;
     i) ALBUMFOLDER=$(realpath "${OPTARG}"); SPECTROGRAMSFOLDER="$ALBUMFOLDER/Spectrograms";;
     o) SPECTROGRAMSFOLDER=$(realpath "${OPTARG}/${ALBUMFOLDER##*/}");;
-    u) UPLOAD="true";;
     *) 	    
     echo "Usage: "
     echo "csfru [options] -i ALBUMFOLDER"
@@ -66,7 +65,7 @@ else
     exit
 fi
 
-if [ "$UPLOAD" = "true" ]
+if [ ! -z "$APIKEY" ]
 then
     xclip -sel c < "$SPECTROGRAMSFOLDER/albumdescription.txt"
     echo "Copied albumdescription.txt to clipboard"

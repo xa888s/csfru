@@ -38,13 +38,11 @@ This would place the spectrograms in the specified directory.
 
 ## Uploading 
 
-To upload you must use 2 additional options: -a and -u
+To upload you must use: -a
 
 Use -a to specify the API key you get from ptpimg.me (go to ptpimg, right click, view page source, search for api_key, copy the string in the value parameter)
 
-Use -u to specify you want to upload the images
-
 A full command would look like this:
 ```
-./csfru -i /path/to/albumfolder -u -a YOURAPIKEY
+./csfru -i /path/to/albumfolder -a YOURAPIKEY
 ```
