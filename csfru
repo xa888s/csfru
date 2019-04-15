@@ -35,41 +35,6 @@ then
     exit
 fi
 
-curl_check() 
-{
-    if [[ "$SONG" == *","* ]]
-    then
-        SONGLINK=$(curl -F "file-upload[0]=@\"$SONG\"" -F api_key="$APIKEY" "https://ptpimg.me/upload.php" | awk -F ":|," '!(NR%4){print p$2}{p=$2}'| sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
-    else
-	SONGLINK=$(curl -F "file-upload[0]=@$(realpath "$SONG")" -F api_key="$APIKEY" "https://ptpimg.me/upload.php" | awk -F ":|," '!(NR%4){print p$2}{p=$2}'| sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
-    fi
-}
-
-chosen_sox() 
-{
-    if [ "$SMALL" ]
-    then
-	sox "$SONG" -n spectrogram -o "$SPECTROGRAMSFOLDER/$SPECTROGRAM"
-    else
-        sox "$SONG" -n remix 1 spectrogram -x 3000 -y 513 -z 120 -w Kaiser -o "$SPECTROGRAMSFOLDER/$SPECTROGRAM"
-    fi
-}
-
-make_spectrograms()
-{
-    mkdir -p "$SPECTROGRAMSFOLDER"
-    echo "Tracklist: " > "$SPECTROGRAMSFOLDER/albumdescription.txt"
-    echo " " >> "$SPECTROGRAMSFOLDER/albumdescription.txt"
-    for SONG in "$ALBUMFOLDER"/*.flac;
-    do
-	SPECTROGRAMSONG="${SONG##*/}"
-	SPECTROGRAM="${SPECTROGRAMSONG%.*}.png"
-	chosen_sox
-	echo "$SPECTROGRAMSONG Done!"
-	echo "${SPECTROGRAMSONG%.*}" >> "$SPECTROGRAMSFOLDER/albumdescription.txt"
-    done
-}
-
 if [ ! -d "$SPECTROGRAMSFOLDER" ]
 then
     echo "-o error"
@@ -78,7 +43,24 @@ then
     echo "$SPECTROGRAMSFOLDER"
     exit
 fi
-make_spectrograms
+
+mkdir -p "$SPECTROGRAMSFOLDER"
+echo "Tracklist: " > "$SPECTROGRAMSFOLDER/albumdescription.txt"
+echo " " >> "$SPECTROGRAMSFOLDER/albumdescription.txt"
+for SONG in "$ALBUMFOLDER"/*.flac;
+do
+    SPECTROGRAMSONG="${SONG##*/}"
+    SPECTROGRAM="${SPECTROGRAMSONG%.*}.png"
+    chosen_sox
+    if [ "$SMALL" ]
+    then
+        sox "$SONG" -n spectrogram -o "$SPECTROGRAMSFOLDER/$SPECTROGRAM"
+    else
+        sox "$SONG" -n remix 1 spectrogram -x 3000 -y 513 -z 120 -w Kaiser -o "$SPECTROGRAMSFOLDER/$SPECTROGRAM"
+    fi
+    echo "$SPECTROGRAMSONG Done!"
+    echo "${SPECTROGRAMSONG%.*}" >> "$SPECTROGRAMSFOLDER/albumdescription.txt"
+done
 
 if [ "$APIKEY" ]
 then
@@ -90,8 +72,13 @@ then
     do
 	SONGNAME="${SONG##*/}"
         echo "Uploading ${SONGNAME%.*}"
-        curl_check
-	echo "${SONGNAME%.*} Done!"
+        if [[ "$SONG" == *","* ]]
+        then
+            SONGLINK=$(curl -F "file-upload[0]=@\"$SONG\"" -F api_key="$APIKEY" "https://ptpimg.me/upload.php" | awk -F ":|," '!(NR%4){print p$2}{p=$2}'| sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
+        else
+            SONGLINK=$(curl -F "file-upload[0]=@$(realpath "$SONG")" -F api_key="$APIKEY" "https://ptpimg.me/upload.php" | awk -F ":|," '!(NR%4){print p$2}{p=$2}'| sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
+        fi
+        echo "${SONGNAME%.*} Done!"
         echo "${SONGNAME%.*}" >> "$SPECTROGRAMSFOLDER/releasedescription.txt"
         echo "[img]$SONGLINK[/img]" >> "$SPECTROGRAMSFOLDER/releasedescription.txt"
         echo " " >> "$SPECTROGRAMSFOLDER/releasedescription.txt"
