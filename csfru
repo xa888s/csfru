@@ -5,7 +5,14 @@ do
     in
     a) APIKEY="${OPTARG}";;
     i) ALBUMDIR=$(realpath "${OPTARG}"); SPECTROGRAMSDIR="$ALBUMDIR/Spectrograms";;
-    o) SPECTROGRAMSDIR=$(realpath "${OPTARG}/${ALBUMDIR##*/}"); BASESPECTROGRAMSDIR=${OPTARG};;
+    o) BASESPECTROGRAMSDIR=$(realpath "${OPTARG}") ||
+    echo "-o error"
+    echo "Please specify a directory that exists!"
+    echo "Specified directory: "
+    echo "$BASESPECTROGRAMSDIR"
+    exit
+    SPECTROGRAMSDIR=$(realpath "${OPTARG}/${ALBUMDIR##*/}")
+    ;;
     s) SMALL="true";;
     *) 	    
     echo "Usage: "
@@ -21,7 +28,7 @@ do
     esac
 done
 
-if [ -z "$ALBUMDIR" ]
+if [ ! "$ALBUMDIR" ]
 then
     echo "${0##*/}: has exited because an input directory was not specified"
     exit
@@ -32,15 +39,6 @@ then
     echo "Please specify a directory that exists!"
     echo "Specified directory: "
     echo "$ALBUMDIR"
-    exit
-fi
-
-if [ ! -d "$BASESPECTROGRAMSDIR" ]
-then
-    echo "-o error"
-    echo "Please specify a directory that exists!"
-    echo "Specified directory: "
-    echo "$SPECTROGRAMSDIR"
     exit
 fi
 
