@@ -65,13 +65,12 @@ else
     exit
 fi
 
-if [ ! -z "$APIKEY" ]
+if [ "$APIKEY" ]
 then
     xclip -sel c < "$SPECTROGRAMSFOLDER/albumdescription.txt"
     echo "Copied albumdescription.txt to clipboard"
     read -p "Press enter when done pasting." input
-    echo "Spectrograms:" > "$SPECTROGRAMSFOLDER/releasedescription.txt"
-    echo " " >> "$SPECTROGRAMSFOLDER/releasedescription.txt"
+    echo "[spoiler=Spectrograms:]" > "$SPECTROGRAMSFOLDER/releasedescription.txt"
     for SONG in "$SPECTROGRAMSFOLDER"/*.png;
     do
 	SONGNAME="${SONG##*/}"
@@ -82,6 +81,7 @@ then
         echo "[img]$SONGLINK[/img]" >> "$SPECTROGRAMSFOLDER/releasedescription.txt"
         echo " " >> "$SPECTROGRAMSFOLDER/releasedescription.txt"
     done
+    echo "[/spoiler]" >> "$SPECTROGRAMSFOLDER/releasedescription.txt"
     xclip -sel c < "$SPECTROGRAMSFOLDER/releasedescription.txt"
     echo "Copied releasedescription.txt to clipboard!"
 fi
