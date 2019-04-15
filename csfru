@@ -45,8 +45,7 @@ curl_check()
     fi
 }
 
-
-chosensox() 
+chosen_sox() 
 {
     if [ "$SMALL" ]
     then
@@ -58,7 +57,6 @@ chosensox()
 
 make_spectrograms()
 {
-    SPECTROGRAMSFOLDER=$1
     mkdir -p "$SPECTROGRAMSFOLDER"
     echo "Tracklist: " > "$SPECTROGRAMSFOLDER/albumdescription.txt"
     echo " " >> "$SPECTROGRAMSFOLDER/albumdescription.txt"
@@ -74,11 +72,11 @@ make_spectrograms()
 
 if [ -z "$SPECTROGRAMSFOLDER" ] 
 then
-    make_spectrograms "$SPECTROGRAMSFOLDER"
+    make_spectrograms
 
 elif [ -d "$SPECTROGRAMSFOLDER" ]
 then
-    make_spectrograms "$SPECTROGRAMSFOLDER"
+    make_spectrograms
 
 else
     echo "-o error"
