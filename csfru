@@ -51,7 +51,6 @@ for SONG in "$ALBUMFOLDER"/*.flac;
 do
     SPECTROGRAMSONG="${SONG##*/}"
     SPECTROGRAM="${SPECTROGRAMSONG%.*}.png"
-    chosen_sox
     if [ "$SMALL" ]
     then
         sox "$SONG" -n spectrogram -o "$SPECTROGRAMSFOLDER/$SPECTROGRAM"
