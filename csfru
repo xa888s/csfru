@@ -1,12 +1,13 @@
-#!/bin/sh
-while getopts a:o:i:*s option
+#!/bin/sh -e
+while getopts a:o:i:*sr option
 do
     case "${option}"
     in
     a) APIKEY="${OPTARG}";;
-    i) ALBUMDIR=$(realpath "${OPTARG}"); SPECTROGRAMSDIR="$ALBUMDIR/Spectrograms"; BASESPECTROGRAMSDIR="$ALBUMDIR";;
-    o) BASESPECTROGRAMSDIR=$(realpath "${OPTARG}"); SPECTROGRAMSDIR=$(realpath "${OPTARG}/${ALBUMDIR##*/}");;
+    i) ALBUMDIR=$(realpath "${OPTARG}"); SPECTROGRAMSDIR="$ALBUMDIR/Spectrograms";;
+    o) SPECTROGRAMSDIR=$(realpath "${OPTARG}/${ALBUMDIR##*/}");;
     s) SMALL="true";;
+    r) REMOVE="true";;
     *) 	    
     echo "Usage: "
     echo "csfru [options] -i ALBUMDIR"
@@ -16,6 +17,7 @@ do
     echo "-o SPECTROGRAMSDIR (if not specified will output in ALBUMDIR)"
     echo "-u (whether to upload or not)"
     echo "-s (for small sized spectrograms)"
+    echo "-r (remove after upload)"
     exit
     ;;
     esac
@@ -36,16 +38,7 @@ then
     exit
 fi
 
-if [ ! -d "$BASESPECTROGRAMSDIR" ]
-then
-    echo "-o error"
-    echo "Please specify a directory that exists!"
-    echo "Specified directory: "
-    echo "$BASESPECTROGRAMSDIR"
-    exit
-fi
-    
-mkdir -p "$SPECTROGRAMSDIR"
+mkdir -p "$SPECTROGRAMSDIR" || exit
 for SONG in "$ALBUMDIR"/*.flac;
 do
     SPECTROGRAMSONG="${SONG##*/}"
@@ -56,7 +49,7 @@ do
     else
         sox "$SONG" -n remix 1 spectrogram -x 3000 -y 513 -z 120 -w Kaiser -o "$SPECTROGRAMSDIR/$SPECTROGRAM"
     fi
-    echo "$SPECTROGRAMSONG Done!"
+    echo "Spectrogram of $SPECTROGRAMSONG created."
 done
 
 if [ "$APIKEY" ]
@@ -66,7 +59,8 @@ then
     echo " " >> "$SPECTROGRAMSDIR/albumdescription.txt"
     for SPECTROGRAM in "$SPECTROGRAMSDIR"/*.png;
     do
-        echo "${SPECTROGRAM%.*}" >> "$SPECTROGRAMSDIR/albumdescription.txt"
+	SPECTROGRAMNAME="${SPECTROGRAM##*/}"
+        echo "${SPECTROGRAMNAME%.*}" >> "$SPECTROGRAMSDIR/albumdescription.txt"
     done
     xclip -sel c < "$SPECTROGRAMSDIR/albumdescription.txt"
     echo "Copied albumdescription.txt to clipboard"
@@ -82,7 +76,7 @@ then
         else
             SPECTROGRAMLINK=$(curl -F "file-upload[0]=@$(realpath "$SPECTROGRAM")" -F api_key="$APIKEY" "https://ptpimg.me/upload.php" | awk -F ":|," '!(NR%4){print p$2}{p=$2}'| sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
         fi
-        echo "${SONGNAME%.*} Done!"
+        echo "${SONGNAME%.*} has been uploaded."
         echo "${SONGNAME%.*}" >> "$SPECTROGRAMSDIR/releasedescription.txt"
         echo "[img]$SPECTROGRAMLINK[/img]" >> "$SPECTROGRAMSDIR/releasedescription.txt"
         echo " " >> "$SPECTROGRAMSDIR/releasedescription.txt"
@@ -90,4 +84,12 @@ then
     echo "[/spoiler]" >> "$SPECTROGRAMSDIR/releasedescription.txt"
     xclip -sel c < "$SPECTROGRAMSDIR/releasedescription.txt"
     echo "Copied releasedescription.txt to clipboard!"
+    if [ "$REMOVE" ]
+    then
+	read -p "Press enter when done pasting." input
+	xsel -bc
+	echo "Removing $SPECTROGRAMSDIR"
+        rm "$SPECTROGRAMSDIR"/*
+        rmdir "$SPECTROGRAMSDIR"
+    fi
 fi
