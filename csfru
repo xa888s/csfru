@@ -4,7 +4,7 @@ do
     case "${option}"
     in
     a) APIKEY="${OPTARG}";;
-    i) ALBUMDIR=$(realpath "${OPTARG}"); SPECTROGRAMSDIR="$ALBUMDIR/Spectrograms";;
+    i) ALBUMDIR=$(realpath -e "${OPTARG}"); SPECTROGRAMSDIR="$ALBUMDIR/Spectrograms";;
     o) SPECTROGRAMSDIR=$(realpath "${OPTARG}/${ALBUMDIR##*/}");;
     s) SMALL="true";;
     r) REMOVE="true";;
@@ -22,21 +22,6 @@ do
     ;;
     esac
 done
-
-if [ ! "$ALBUMDIR" ]
-then
-    echo "${0##*/}: has exited because an input directory was not specified"
-    exit
-fi
-
-if [ ! -d "$ALBUMDIR" ]
-then 
-    echo "-i error"
-    echo "Please specify a directory that exists!"
-    echo "Specified directory: "
-    echo "$ALBUMDIR"
-    exit
-fi
 
 mkdir -p "$SPECTROGRAMSDIR" || exit
 for SONG in "$ALBUMDIR"/*.flac;
@@ -65,6 +50,7 @@ then
     xclip -sel c < "$SPECTROGRAMSDIR/albumdescription.txt"
     echo "Copied albumdescription.txt to clipboard"
     read -p "Press enter when done pasting." input
+    xsel -bc
     printf "[spoiler=Spectrograms]" > "$SPECTROGRAMSDIR/releasedescription.txt"
     for SPECTROGRAM in "$SPECTROGRAMSDIR"/*.png;
     do
