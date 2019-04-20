@@ -54,7 +54,14 @@ then
     for SONG in $(ls -v -1 "$ALBUMDIR"/*.flac);
     do
 	SONGNAME="${SONG##*/}"
-        echo "${SONGNAME%.*}" >> "$SPECTROGRAMSDIR/albumdescription.txt"
+	echo "${SONGNAME%.*}"
+	if [[ "${SONGNAME%.*}" == *"%"* ]]
+	then
+	    SONGNAMEFIXED=$(echo "${SONGNAME%.*}" | sed 's/%/%%/g')
+            printf "$SONGNAMEFIXED" >> "$SPECTROGRAMSDIR/albumdescription.txt"
+        else
+            printf "${SONGNAME%.*}" >> "$SPECTROGRAMSDIR/albumdescription.txt"
+	fi
 	SONGLENGTH=$(ffmpeg -i "$SONG" 2>&1 | grep Duration | sed -e "s/\,.*//" -e "s/^[^:]*://" -e "s/^[^:]*://" | cut -f 1 -d'.')
         printf " $SONGLENGTH\n" >> "$SPECTROGRAMSDIR/albumdescription.txt" 
     done
