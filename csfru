@@ -1,4 +1,5 @@
 #!/bin/sh -e
+IFS=$'\n'
 while getopts a:o:i:*nr option
 do
     case "${option}"
@@ -27,7 +28,7 @@ mkdir -p "$SPECTROGRAMSDIR" || exit
 if [ ! $NORMAL ];
 then
     mkdir -p "$SPECTROGRAMSDIR"/Zoomed "$SPECTROGRAMSDIR"/Normal
-    for SONG in "$ALBUMDIR"/*.flac;
+    for SONG in $(ls -v -1 "$ALBUMDIR"/*.flac);
     do
         SPECTROGRAMSONG="${SONG##*/}"
         SPECTROGRAM="${SPECTROGRAMSONG%.*}.png"
@@ -36,7 +37,7 @@ then
         echo "Spectrograms of $SPECTROGRAMSONG created."
     done
 else
-    for SONG in "$ALBUMDIR"/*.flac;
+    for SONG in $(ls -v -1 "$ALBUMDIR"/*.flac);
     do
         SPECTROGRAMSONG="${SONG##*/}"
         SPECTROGRAM="${SPECTROGRAMSONG%.*}.png"
@@ -50,10 +51,11 @@ then
     echo "Creating albumdescription.txt"
     echo "Tracklist: " > "$SPECTROGRAMSDIR/albumdescription.txt"
     echo " " >> "$SPECTROGRAMSDIR/albumdescription.txt"
-    for SONG in "$ALBUMDIR"/*.flac;
+    for SONG in $(ls -v -1 "$ALBUMDIR"/*.flac);
     do
 	SONGNAME="${SONG##*/}"
         echo "${SONGNAME%.*}" >> "$SPECTROGRAMSDIR/albumdescription.txt"
+#	ffmpeg -i "$SONG" 2>&1 | grep Duration | sed -e "s/\,.*//" -e "s/^[^:]*://" -e "s/^[^:]*://" | cut -f 1 -d'.' >> "$SPECTROGRAMSDIR/albumdescription.txt" 
     done
     xclip -sel c < "$SPECTROGRAMSDIR/albumdescription.txt"
     echo "Copied albumdescription.txt to clipboard"
@@ -62,7 +64,7 @@ then
     if [ $NORMAL ];
     then
         printf "[spoiler=Spectrograms]" > "$SPECTROGRAMSDIR/releasedescription.txt"
-        for SPECTROGRAM in "$SPECTROGRAMSDIR"/*.png;
+	for SPECTROGRAM in $(ls -v -1 "$SPECTROGRAMSDIR"/*.png);
         do
             SONGNAME="${SPECTROGRAM##*/}"
             echo "Uploading ${SONGNAME%.*}"
@@ -84,7 +86,7 @@ then
 	SPECTROGRAMNORMALPATH="$SPECTROGRAMSDIR/Normal/${SONGNAME%.*}.png"
 	SPECTROGRAMZOOMEDPATH="$SPECTROGRAMSDIR/Zoomed/${SONGNAME%.*}.png"
         printf "[spoiler=Spectrograms]" > "$SPECTROGRAMSDIR/releasedescription.txt"
-        for SONG in "$ALBUMDIR"/*.flac;
+        for SONG in $(ls -v -1 "$ALBUMDIR"/*.flac);
         do
             SONGNAME="${SONG##*/}"
             echo "Uploading ${SONGNAME%.*}"
