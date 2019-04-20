@@ -56,7 +56,7 @@ then
 	SONGNAME="${SONG##*/}"
         echo "${SONGNAME%.*}" >> "$SPECTROGRAMSDIR/albumdescription.txt"
 	SONGLENGTH=$(ffmpeg -i "$SONG" 2>&1 | grep Duration | sed -e "s/\,.*//" -e "s/^[^:]*://" -e "s/^[^:]*://" | cut -f 1 -d'.')
-        echo " $SONGLENGTH\n" >> "$SPECTROGRAMSDIR/albumdescription.txt" 
+        printf " $SONGLENGTH\n" >> "$SPECTROGRAMSDIR/albumdescription.txt" 
     done
     xclip -sel c < "$SPECTROGRAMSDIR/albumdescription.txt"
     printf "Copied albumdescription.txt to clipboard\n"
