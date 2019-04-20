@@ -123,7 +123,7 @@ then
 	read -p "Press enter when done pasting." input
 	xsel -bc
 	echo "Removing $SPECTROGRAMSDIR"
-        rm "$SPECTROGRAMSDIR"/*
+        rm -rf "$SPECTROGRAMSDIR"/*
         rmdir "$SPECTROGRAMSDIR"
     fi
 fi
