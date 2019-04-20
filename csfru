@@ -54,7 +54,6 @@ then
     for SONG in $(ls -v -1 "$ALBUMDIR"/*.flac);
     do
 	SONGNAME="${SONG##*/}"
-	echo "${SONGNAME%.*}"
 	if [[ "${SONGNAME%.*}" == *"%"* ]]
 	then
 	    SONGNAMEFIXED=$(echo "${SONGNAME%.*}" | sed 's/%/%%/g')
