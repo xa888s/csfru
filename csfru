@@ -1,6 +1,6 @@
 #!/bin/sh -e
 IFS=$'\n'
-while getopts a:o:i:*nr option
+while getopts a:o:i:*nrw option
 do
     case "${option}"
     in
@@ -9,6 +9,7 @@ do
     o) SPECTROGRAMSDIR=$(realpath "${OPTARG}/${ALBUMDIR##*/}");;
     n) NORMAL="true";;
     r) REMOVE="true";;
+    w) WATERMARK="true";;
     *) 	    
     echo "Usage: "
     echo "csfru [options] -i ALBUMDIR"
@@ -19,6 +20,7 @@ do
     echo "-u (whether to upload or not)"
     echo "-s (for small sized spectrograms)"
     echo "-r (remove after upload)"
+    echo "-w [remove credit (link to the forum post)]"
     exit
     ;;
     esac
@@ -54,8 +56,9 @@ then
     for SONG in $(ls -v -1 "$ALBUMDIR"/*.flac);
     do
 	SONGNAME="${SONG##*/}"
-        echo "${SONGNAME%.*}" >> "$SPECTROGRAMSDIR/albumdescription.txt"
-#	ffmpeg -i "$SONG" 2>&1 | grep Duration | sed -e "s/\,.*//" -e "s/^[^:]*://" -e "s/^[^:]*://" | cut -f 1 -d'.' >> "$SPECTROGRAMSDIR/albumdescription.txt" 
+        printf "${SONGNAME%.*}" >> "$SPECTROGRAMSDIR/albumdescription.txt"
+	SONGLENGTH=$(ffmpeg -i "$SONG" 2>&1 | grep Duration | sed -e "s/\,.*//" -e "s/^[^:]*://" -e "s/^[^:]*://" | cut -f 1 -d'.')
+        printf " $SONGLENGTH\n" >> "$SPECTROGRAMSDIR/albumdescription.txt" 
     done
     xclip -sel c < "$SPECTROGRAMSDIR/albumdescription.txt"
     echo "Copied albumdescription.txt to clipboard"
@@ -116,6 +119,10 @@ then
             fi
         done
         echo "[/spoiler]" >> "$SPECTROGRAMSDIR/releasedescription.txt"
+        if [ ! "$WATERMARK" ]
+        then
+            printf "\nThese spectrals were generated using [url=https://redacted.ch/forums.php?action=viewthread&threadid=33769]csfru[/url]\n" >> "$SPECTROGRAMSDIR/releasedescription.txt"
+        fi
         xclip -sel c < "$SPECTROGRAMSDIR/releasedescription.txt"
         echo "Copied releasedescription.txt to clipboard!"
 	
