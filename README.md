@@ -8,7 +8,7 @@ This tool allows you to automate the creation of spectrograms for RED uploads in
 
 # Dependencies
 
-It uses curl (uploading to ptpimg.me), sox (generating spectrograms to upload/view), xsel (to clear keyboard) and xclip (optional: copying the album description and release description to clipboard)
+It uses curl (uploading to ptpimg.me), sox (generating spectrograms to upload/view), ffmpeg (to find length of each song), xsel (to clear keyboard) and xclip (optional: copying the album description and release description to clipboard)
 
 # Usage
 
