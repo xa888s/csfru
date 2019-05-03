@@ -16,10 +16,9 @@ do
     printf "\nOptions: "
     printf "\n-a PTPIMGAPIKEY"
     printf "\n-o SPECTROGRAMSDIR (if not specified will output in ALBUMDIR)"
-    printf "\n-u (whether to upload or not)"
     printf "\n-s (for small sized spectrograms)"
     printf "\n-r (remove after upload)"
-    printf "\n-w [remove credit (link to the forum post)]"
+    printf "\n-w [remove credit (link to the forum post)]\n"
     exit
     ;;
     esac
