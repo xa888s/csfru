@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 IFS=$'\n'
 while getopts a:o:i:*nrw option
 do
