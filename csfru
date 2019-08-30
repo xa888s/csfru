@@ -16,7 +16,7 @@ get_args() {
     done
 }
 
-# program usage (displayed when an paramaters aren't passed correctly)
+# program usage (displayed when paramaters aren't passed correctly)
 usage() {
     printf 'Usage:\n'
     printf 'csfru [options] -i _album_dir\n'
@@ -26,6 +26,42 @@ usage() {
     printf '\n-r (remove after upload)'
     printf '\n-w [remove credit (link to the forum post)]\n'
     exit
+}
+
+get_song_list() {
+    # populate an array with the list of songs in album dir
+    _song_list=("$_album_dir"/*.flac)
+
+    local _song_list_temp=()
+    # create a new array with only basenames
+    for _song in "${_song_list[@]}"
+    do
+        _song_list_temp+=("${_song##*/}")
+    done
+    # assign that array back to the original
+    mapfile -t _song_list < <(printf '%s\n' "${_song_list_temp[@]}" | sort -g)
+    unset _song_list_temp
+}
+
+create_specs() {
+    # attempt to create directories for specs and if it fails exit
+    mkdir -p "${_spec_dir:?}"/zoomed "${_spec_dir:?}"/normal || \
+        { printf "Couldn't create directories for spectrograms\n"; exit 1; }
+    
+    # create a zoomed and normal spectrogram for each song
+    for _song in "${_song_list[@]}";
+    do
+        local _song_full="$_album_dir"/"$_song"
+        local _spec="${_song%.*}.png"
+
+        sox "$_song_full" -n remix 1 spectrogram -x 3000 -y 513 -z 120 -w Kaiser \
+            -o "$_spec_dir"/normal/"$_spec" -t "${_song%.*}" 
+        
+        sox "$_song_full" -n remix 1 spectrogram -X 500 -y 1025 -z 120 -w Kaiser -S 1:00 -d 0:02 \
+            -o "$_spec_dir"/zoomed/"$_spec" -t "${_song%.*}" 
+
+        printf 'Spectrograms of %s created.\n' "$_song"
+    done
 }
 
 # get length of all tracks and output to a file
@@ -44,6 +80,25 @@ get_song_length() {
     printf 'Copied albumdescription.txt to clipboard\n'
     read -rp 'Press enter when done pasting.'
     { xclip -sel c || pbcopy; } < /dev/null
+}
+
+# upload *.png to ptpimg.me. and append link to file
+upload() {
+    local _pic="$1"
+    local _song_name="$2"
+    local _type="$3"
+
+    # uploading file
+    _link=$(curl -F "file-upload[0]=@${_pic}" -F api_key="$_key" 'https://ptpimg.me/upload.php' | \
+        awk -F ':|,' '!(NR%4){print p$2}{p=$2}'| \
+        sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
+    
+    # report progress to user
+    printf '%s %s has been uploaded.\n' "$_song_name" "$_type"
+    printf '%s %s\n' "$_song_name" "$_type" >> "$_spec_dir"/releasedescription.txt
+
+    # append name to file
+    printf '[img]%s[/img]\n\n' "$_link" >> "$_spec_dir"/releasedescription.txt
 }
 
 # make release description and upload each spectrogram
@@ -83,61 +138,6 @@ release() {
         rm -rf "${_spec_dir:?}"/*
         rmdir "$_spec_dir"
     fi
-}
-
-# upload *.png to ptpimg.me. and append link to file
-upload() {
-    local _pic="$1"
-    local _song_name="$2"
-    local _type="$3"
-
-    # uploading file
-    _link=$(curl -F "file-upload[0]=@${_pic}" -F api_key="$_key" 'https://ptpimg.me/upload.php' | \
-        awk -F ':|,' '!(NR%4){print p$2}{p=$2}'| \
-        sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
-    
-    # report progress to user
-    printf '%s %s has been uploaded.\n' "$_song_name" "$_type"
-    printf '%s %s\n' "$_song_name" "$_type" >> "$_spec_dir"/releasedescription.txt
-
-    # append name to file
-    printf '[img]%s[/img]\n\n' "$_link" >> "$_spec_dir"/releasedescription.txt
-}
-
-get_song_list() {
-    # populate an array with the list of songs in album dir
-    _song_list=("$_album_dir"/*.flac)
-
-    local _song_list_temp=()
-    # create a new array with only basenames
-    for _song in "${_song_list[@]}"
-    do
-        _song_list_temp+=("${_song##*/}")
-    done
-    # assign that array back to the original
-    mapfile -t _song_list < <(printf '%s\n' "${_song_list_temp[@]}" | sort -g)
-    unset _song_list_temp
-}
-
-create_specs() {
-    # attempt to create directories for specs and if it fails exit
-    mkdir -p "$_spec_dir"/zoomed "$_spec_dir"/normal || \
-        { printf "Couldn't create directories for spectrograms\n"; exit 1; }
-    
-    # create a zoomed and normal spectrogram for each song
-    for _song in "${_song_list[@]}";
-    do
-        local _song_full="$_album_dir"/"$_song"
-        local _spec="${_song%.*}.png"
-
-        sox "$_song_full" -n remix 1 spectrogram -x 3000 -y 513 -z 120 -w Kaiser \
-            -o "$_spec_dir"/normal/"$_spec" -t "${_song%.*}" 
-        
-        sox "$_song_full" -n remix 1 spectrogram -X 500 -y 1025 -z 120 -w Kaiser -S 1:00 -d 0:02 \
-            -o "$_spec_dir"/zoomed/"$_spec" -t "${_song%.*}" 
-
-        printf 'Spectrograms of %s created.\n' "$_song"
-    done
 }
 
 main() {
