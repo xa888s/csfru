@@ -39,9 +39,9 @@ main() {
         _song_list_temp=()
         for _song in "${_song_list[@]}"
         do
-            _song_list_temp+=(${_song##*/})
+            _song_list_temp+=("${_song##*/}")
         done
-        _song_list=( $(printf '%s\n' "${_song_list_temp[@]}" | sort -g) )
+        mapfile -t _song_list < <(printf '%s\n' "${_song_list_temp[@]}" | sort -g)
         unset _song_list_temp
 
         for SONG in "${_song_list[@]}";
