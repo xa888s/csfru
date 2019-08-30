@@ -122,7 +122,7 @@ get_song_list() {
 create_specs() {
     # attempt to create directories for specs and if it fails exit
     mkdir -p "$_spec_dir"/zoomed "$_spec_dir"/normal || \
-        { printf "Couldn't create directories for spectrograms"; exit 1; }
+        { printf "Couldn't create directories for spectrograms\n"; exit 1; }
     
     # create a zoomed and normal spectrogram for each song
     for _song in "${_song_list[@]}";
