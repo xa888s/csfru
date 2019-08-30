@@ -34,7 +34,7 @@ then
         SPECTROGRAM="${SPECTROGRAMSONG%.*}.png"
         sox "$SONG" -n remix 1 spectrogram -x 3000 -y 513 -z 120 -w Kaiser -o "$SPECTROGRAMSDIR"/Normal/"$SPECTROGRAM" -t "${SPECTROGRAMSONG%.*}" 
         sox "$SONG" -n remix 1 spectrogram -X 500 -y 1025 -z 120 -w Kaiser -S 1:00 -d 0:02 -o "$SPECTROGRAMSDIR"/Zoomed/"$SPECTROGRAM" -t "${SPECTROGRAMSONG%.*}" 
-        echo "Spectrograms of "$SPECTROGRAMSONG" created."
+        echo "Spectrograms of $SPECTROGRAMSONG created."
     done
 else
     for SONG in $(ls -v -1 "$ALBUMDIR"/*.flac);
@@ -42,7 +42,7 @@ else
         SPECTROGRAMSONG="${SONG##*/}"
         SPECTROGRAM="${SPECTROGRAMSONG%.*}.png"
         sox "$SONG" -n spectrogram -o "$SPECTROGRAMSDIR"/"$SPECTROGRAM" -t "${SPECTROGRAMSONG%.*}" 
-        echo "Spectrograms of "$SPECTROGRAMSONG" created."
+        echo "Spectrograms of $SPECTROGRAMSONG created."
     done
 fi
 
@@ -54,13 +54,13 @@ then
     do
 	SONGNAME="${SONG##*/}"
 	SONGNAMEFIXED=$(echo "${SONGNAME%.*}" | sed 's/%/%%/g')
-        printf "$SONGNAMEFIXED" >> "$SPECTROGRAMSDIR/albumdescription.txt"
+        printf '%s' "$SONGNAMEFIXED" >> "$SPECTROGRAMSDIR/albumdescription.txt"
 	SONGLENGTH=$(ffmpeg -i "$SONG" 2>&1 | grep Duration | sed -e "s/\,.*//" -e "s/^[^:]*://" -e "s/^[^:]*://" | cut -f 1 -d'.')
-        printf " $SONGLENGTH\n" >> "$SPECTROGRAMSDIR/albumdescription.txt" 
+        printf ' %s\n' "$SONGLENGTH" >> "$SPECTROGRAMSDIR/albumdescription.txt" 
     done
     xclip -sel c < "$SPECTROGRAMSDIR/albumdescription.txt"
     printf "Copied albumdescription.txt to clipboard\n"
-    read -p "Press enter when done pasting." input
+    read -rp "Press enter when done pasting."
     xsel -bc
     if [ $NORMAL ];
     then
@@ -68,7 +68,7 @@ then
 	for SPECTROGRAM in $(ls -v -1 "$SPECTROGRAMSDIR"/*.png);
         do
             SONGNAME="${SPECTROGRAM##*/}"
-            echo "Uploading "${SONGNAME%.*}""
+            echo "Uploading ${SONGNAME%.*}"
             if [[ "$SPECTROGRAM" == *","* ]]
             then
                 SPECTROGRAMLINK=$(curl -F "file-upload[0]=@\"$SPECTROGRAM\"" -F api_key="$APIKEY" "https://ptpimg.me/upload.php" | awk -F ":|," '!(NR%4){print p$2}{p=$2}'| sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
@@ -77,7 +77,7 @@ then
             fi
             echo "${SONGNAME%.*} has been uploaded."
             echo "${SONGNAME%.*}" >> "$SPECTROGRAMSDIR/releasedescription.txt"
-            printf "[img]$SPECTROGRAMLINK[/img]\n\n" >> "$SPECTROGRAMSDIR/releasedescription.txt"
+            printf '[img]%s[/img]\n\n' "$SPECTROGRAMLINK" >> "$SPECTROGRAMSDIR/releasedescription.txt"
         done
         printf "[/spoiler]\n" >> "$SPECTROGRAMSDIR/releasedescription.txt"
         xclip -sel c < "$SPECTROGRAMSDIR/releasedescription.txt"
@@ -95,20 +95,20 @@ then
                 SPECTROGRAMNORMALLINK=$(curl -F "file-upload[0]=@\"$SPECTROGRAMNORMALPATH\"" -F api_key="$APIKEY" "https://ptpimg.me/upload.php" | awk -F ":|," '!(NR%4){print p$2}{p=$2}'| sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
                 echo "${SONGNAME%.*} (Normal) has been uploaded."
 		echo "${SONGNAME%.*} (Normal)" >> "$SPECTROGRAMSDIR/releasedescription.txt"
-                printf "[img]$SPECTROGRAMNORMALLINK[/img]\n\n" >> "$SPECTROGRAMSDIR/releasedescription.txt"
+                printf '[img]%s[/img]\n\n' "$SPECTROGRAMNORMALLINK" >> "$SPECTROGRAMSDIR/releasedescription.txt"
                 SPECTROGRAMZOOMEDLINK=$(curl -F "file-upload[0]=@\"$SPECTROGRAMZOOMEDPATH\"" -F api_key="$APIKEY" "https://ptpimg.me/upload.php" | awk -F ":|," '!(NR%4){print p$2}{p=$2}'| sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
 		echo "${SONGNAME%.*} (Zoomed) has been uploaded."
 		echo "${SONGNAME%.*} (Zoomed)" >> "$SPECTROGRAMSDIR/releasedescription.txt"
-                printf "[img]$SPECTROGRAMZOOMEDLINK[/img]\n\n" >> "$SPECTROGRAMSDIR/releasedescription.txt"
+                printf '[img]%s[/img]\n\n' "$SPECTROGRAMZOOMEDLINK" >> "$SPECTROGRAMSDIR/releasedescription.txt"
             else
                 SPECTROGRAMNORMALLINK=$(curl -F "file-upload[0]=@$(realpath "$SPECTROGRAMNORMALPATH")" -F api_key="$APIKEY" "https://ptpimg.me/upload.php" | awk -F ":|," '!(NR%4){print p$2}{p=$2}'| sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
                 echo "${SONGNAME%.*} (Normal) has been uploaded."
 		echo "${SONGNAME%.*} (Normal)" >> "$SPECTROGRAMSDIR/releasedescription.txt"
-                printf "[img]$SPECTROGRAMNORMALLINK[/img]\n\n" >> "$SPECTROGRAMSDIR/releasedescription.txt"
+                printf '[img]%s[/img]\n\n' "$SPECTROGRAMNORMALLINK" >> "$SPECTROGRAMSDIR/releasedescription.txt"
                 SPECTROGRAMZOOMEDLINK=$(curl -F "file-upload[0]=@$(realpath "$SPECTROGRAMZOOMEDPATH")" -F api_key="$APIKEY" "https://ptpimg.me/upload.php" | awk -F ":|," '!(NR%4){print p$2}{p=$2}'| sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
 		echo "${SONGNAME%.*} (Zoomed) has been uploaded."
 		echo "${SONGNAME%.*} (Zoomed)" >> "$SPECTROGRAMSDIR/releasedescription.txt"
-                printf "[img]$SPECTROGRAMZOOMEDLINK[/img]\n\n" >> "$SPECTROGRAMSDIR/releasedescription.txt"
+                printf '[img]%s[/img]\n\n' "$SPECTROGRAMZOOMEDLINK" >> "$SPECTROGRAMSDIR/releasedescription.txt"
             fi
         done
         printf "[/spoiler]\n" >> "$SPECTROGRAMSDIR/releasedescription.txt"
@@ -122,10 +122,10 @@ then
     fi
     if [ "$REMOVE" ]
     then
-	read -p "Press enter when done pasting." input
+	read -rp "Press enter when done pasting."
 	xsel -bc
-	printf "Removing $SPECTROGRAMSDIR\n"
-        rm -rf "$SPECTROGRAMSDIR"/*
+	printf 'Removing %s\n' "$SPECTROGRAMSDIR"
+        rm -rf "${SPECTROGRAMSDIR:?}"/*
         rmdir "$SPECTROGRAMSDIR"
     fi
 fi
