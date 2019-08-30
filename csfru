@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 IFS="
 "
 get_args() {
@@ -76,10 +76,10 @@ get_song_length() {
         _song_length=$(ffmpeg -i "$_song_full" 2>&1 | grep Duration | sed -e 's/\,.*//' -e 's/^[^:]*://' -e 's/^[^:]*://' | cut -f 1 -d'.')
         printf ' %s\n' "$_song_length" >> "$_spec_dir"/albumdescription.txt
     done
-    { xclip -sel c || pbcopy; } < "$_spec_dir"/albumdescription.txt
+    { xclip -sel c || pbcopy; } < "$_spec_dir"/albumdescription.txt > /dev/null 2>&1
     printf 'Copied albumdescription.txt to clipboard\n'
     read -rp 'Press enter when done pasting.'
-    { xclip -sel c || pbcopy; } < /dev/null
+    { xclip -sel c || pbcopy; } < /dev/null > /dev/null 2>&1
 }
 
 # upload *.png to ptpimg.me. and append link to file
@@ -127,13 +127,13 @@ release() {
         printf '\nThese spectrals were generated using [url=https://redacted.ch/forums.php?action=viewthread&threadid=33769]csfru[/url]\n' >> "$_spec_dir"/releasedescription.txt
     fi
     
-    { xclip -sel c || pbcopy; } < "$_spec_dir"/releasedescription.txt
+    { xclip -sel c || pbcopy; } < "$_spec_dir"/releasedescription.txt > /dev/null 2>&1
     printf 'Copied releasedescription.txt to clipboard!\n'
 
     if [ "$_rm" ]
     then
         read -rp 'Press enter when done pasting.'
-        { xclip -sel c || pbcopy; } < /dev/null
+        { xclip -sel c || pbcopy; } < /dev/null > /dev/null 2>&1
         printf 'Removing %s\n' "$_spec_dir"
         rm -rf "${_spec_dir:?}"/*
         rmdir "$_spec_dir"
