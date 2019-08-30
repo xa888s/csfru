@@ -5,14 +5,14 @@ get_args() {
     while getopts a:o:i:*nrw option
     do
         case "${option}"
-        in
-        a) _key="${OPTARG}";;
-        i) _album_dir=$(realpath -e "${OPTARG}"); _spec_dir="$_album_dir/Spectrograms";;
-        o) _spec_dir=$(realpath "${OPTARG}/${_album_dir##*/}");;
-        n) _norm="true";;
-        r) _rm="true";;
-        w) _mark="true";;
-        *) usage;;
+            in
+            a) _key="${OPTARG}";;
+            i) _album_dir=$(realpath -e "${OPTARG}"); _spec_dir="$_album_dir/Spectrograms";;
+            o) _spec_dir=$(realpath "${OPTARG}/${_album_dir##*/}");;
+            n) _norm="true";;
+            r) _rm="true";;
+            w) _mark="true";;
+            *) usage;;
         esac
     done
 }
@@ -65,7 +65,7 @@ main() {
             echo "Spectrograms of $SONG created."
         done
     fi
-    
+
     if [ "$_key" ]
     then
         printf "Creating albumdescription.txt\n"
@@ -75,7 +75,7 @@ main() {
             SONG="$_album_dir"/"$SONG"
             SONG_BASE="${SONG##*/}"
             printf '%s' "${SONG_BASE%.*}" >> "$_spec_dir/albumdescription.txt"
-    	SONGLENGTH=$(ffmpeg -i "$SONG" 2>&1 | grep Duration | sed -e "s/\,.*//" -e "s/^[^:]*://" -e "s/^[^:]*://" | cut -f 1 -d'.')
+            SONGLENGTH=$(ffmpeg -i "$SONG" 2>&1 | grep Duration | sed -e "s/\,.*//" -e "s/^[^:]*://" -e "s/^[^:]*://" | cut -f 1 -d'.')
             printf ' %s\n' "$SONGLENGTH" >> "$_spec_dir/albumdescription.txt" 
         done
         xclip -sel c < "$_spec_dir/albumdescription.txt"
@@ -85,7 +85,7 @@ main() {
         if [ $_norm ];
         then
             printf "[spoiler=Spectrograms]" > "$_spec_dir/releasedescription.txt"
-    	for SPECTROGRAM in "${_song_list[@]}";
+            for SPECTROGRAM in "${_song_list[@]}";
             do
                 SPECTROGRAM="$_album_dir"/"$SPECTROGRAM"
                 SONGNAME="${SPECTROGRAM##*/}"
@@ -109,27 +109,27 @@ main() {
             do
                 SONG="$_album_dir"/"$SONG"
                 SONGNAME="${SONG##*/}"
-    	    SPECTROGRAMNORMALPATH="$_spec_dir/Normal/${SONGNAME%.*}.png"
-    	    SPECTROGRAMZOOMEDPATH="$_spec_dir/Zoomed/${SONGNAME%.*}.png"
+                SPECTROGRAMNORMALPATH="$_spec_dir/Normal/${SONGNAME%.*}.png"
+                SPECTROGRAMZOOMEDPATH="$_spec_dir/Zoomed/${SONGNAME%.*}.png"
                 echo "Uploading ${SONGNAME%.*}"
-    	    if [[ "$SONG" == *","* ]]
+                if [[ "$SONG" == *","* ]]
                 then
                     SPECTROGRAMNORMALLINK=$(curl -F "file-upload[0]=@\"$SPECTROGRAMNORMALPATH\"" -F api_key="$_key" "https://ptpimg.me/upload.php" | awk -F ":|," '!(NR%4){print p$2}{p=$2}'| sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
                     echo "${SONGNAME%.*} (Normal) has been uploaded."
-    		echo "${SONGNAME%.*} (Normal)" >> "$_spec_dir/releasedescription.txt"
+                    echo "${SONGNAME%.*} (Normal)" >> "$_spec_dir/releasedescription.txt"
                     printf '[img]%s[/img]\n\n' "$SPECTROGRAMNORMALLINK" >> "$_spec_dir/releasedescription.txt"
                     SPECTROGRAMZOOMEDLINK=$(curl -F "file-upload[0]=@\"$SPECTROGRAMZOOMEDPATH\"" -F api_key="$_key" "https://ptpimg.me/upload.php" | awk -F ":|," '!(NR%4){print p$2}{p=$2}'| sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
-    		echo "${SONGNAME%.*} (Zoomed) has been uploaded."
-    		echo "${SONGNAME%.*} (Zoomed)" >> "$_spec_dir/releasedescription.txt"
+                    echo "${SONGNAME%.*} (Zoomed) has been uploaded."
+                    echo "${SONGNAME%.*} (Zoomed)" >> "$_spec_dir/releasedescription.txt"
                     printf '[img]%s[/img]\n\n' "$SPECTROGRAMZOOMEDLINK" >> "$_spec_dir/releasedescription.txt"
                 else
                     SPECTROGRAMNORMALLINK=$(curl -F "file-upload[0]=@$(realpath "$SPECTROGRAMNORMALPATH")" -F api_key="$_key" "https://ptpimg.me/upload.php" | awk -F ":|," '!(NR%4){print p$2}{p=$2}'| sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
                     echo "${SONGNAME%.*} (Normal) has been uploaded."
-    		echo "${SONGNAME%.*} (Normal)" >> "$_spec_dir/releasedescription.txt"
+                    echo "${SONGNAME%.*} (Normal)" >> "$_spec_dir/releasedescription.txt"
                     printf '[img]%s[/img]\n\n' "$SPECTROGRAMNORMALLINK" >> "$_spec_dir/releasedescription.txt"
                     SPECTROGRAMZOOMEDLINK=$(curl -F "file-upload[0]=@$(realpath "$SPECTROGRAMZOOMEDPATH")" -F api_key="$_key" "https://ptpimg.me/upload.php" | awk -F ":|," '!(NR%4){print p$2}{p=$2}'| sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
-    		echo "${SONGNAME%.*} (Zoomed) has been uploaded."
-    		echo "${SONGNAME%.*} (Zoomed)" >> "$_spec_dir/releasedescription.txt"
+                    echo "${SONGNAME%.*} (Zoomed) has been uploaded."
+                    echo "${SONGNAME%.*} (Zoomed)" >> "$_spec_dir/releasedescription.txt"
                     printf '[img]%s[/img]\n\n' "$SPECTROGRAMZOOMEDLINK" >> "$_spec_dir/releasedescription.txt"
                 fi
             done
@@ -140,13 +140,13 @@ main() {
             fi
             xclip -sel c < "$_spec_dir/releasedescription.txt"
             printf "Copied releasedescription.txt to clipboard!\n"
-    	
+
         fi
         if [ "$_rm" ]
         then
-    	read -rp "Press enter when done pasting."
-    	xsel -bc
-    	printf 'Removing %s\n' "$_spec_dir"
+            read -rp "Press enter when done pasting."
+            xsel -bc
+            printf 'Removing %s\n' "$_spec_dir"
             rm -rf "${_spec_dir:?}"/*
             rmdir "$_spec_dir"
         fi
