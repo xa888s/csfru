@@ -74,8 +74,7 @@ main() {
         do
             SONG="$_album_dir"/"$SONG"
             SONG_BASE="${SONG##*/}"
-    	SONGNAMEFIXED=$(echo "${SONG_BASE%.*}" | sed 's/%/%%/g')
-            printf '%s' "$SONGNAMEFIXED" >> "$_spec_dir/albumdescription.txt"
+            printf '%s' "${SONG_BASE%.*}" >> "$_spec_dir/albumdescription.txt"
     	SONGLENGTH=$(ffmpeg -i "$SONG" 2>&1 | grep Duration | sed -e "s/\,.*//" -e "s/^[^:]*://" -e "s/^[^:]*://" | cut -f 1 -d'.')
             printf ' %s\n' "$SONGLENGTH" >> "$_spec_dir/albumdescription.txt" 
         done
