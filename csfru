@@ -84,18 +84,18 @@ get_song_length() {
 
 # upload *.png to ptpimg.me. and append link to file
 upload() {
-    local _pic="$1"
-    local _song_name="$2"
+    local _spec="$1"
+    local _song="$2"
     local _type="$3"
 
     # uploading file
-    _link=$(curl -F "file-upload[0]=@${_pic}" -F api_key="$_key" 'https://ptpimg.me/upload.php' | \
+    _link=$(curl -F "file-upload[0]=@${_spec}" -F api_key="$_key" 'https://ptpimg.me/upload.php' | \
         awk -F ':|,' '!(NR%4){print p$2}{p=$2}'| \
         sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
     
     # report progress to user
-    printf '%s %s has been uploaded.\n' "$_song_name" "$_type"
-    printf '%s %s\n' "$_song_name" "$_type" >> "$_spec_dir"/releasedescription.txt
+    printf '%s %s has been uploaded.\n' "$_song" "$_type"
+    printf '%s %s\n' "$_song" "$_type" >> "$_spec_dir"/releasedescription.txt
 
     # append name to file
     printf '[img]%s[/img]\n\n' "$_link" >> "$_spec_dir"/releasedescription.txt
@@ -106,13 +106,15 @@ release() {
     get_song_length
 
     printf '[spoiler=Spectrograms]' > "$_spec_dir"/releasedescription.txt
+    
     for _song in "${_song_list[@]}";
     do
-        local _song_full="$_album_dir"/"$_song"
         local _spec_norm_path="$_spec_dir"/normal/"${_song%.*}".png
         local _spec_zoom_path="$_spec_dir"/zoomed/"${_song%.*}".png
+
         printf 'Uploading %s\n' "${_song%.*}"
-        if [[ "$_song_full" == *','* ]]
+        
+        if [[ "$_album_dir"/"$_song" == *','* ]]
         then
             upload "\"$_spec_norm_path\"" "$_song" '(Normal)'
             upload "\"$_spec_zoom_path\"" "$_song" '(Zoomed)'
@@ -121,7 +123,9 @@ release() {
             upload "$(realpath "$_spec_zoom_path")" "$_song" '(Zoomed)'
         fi
     done
+
     printf '[/spoiler]\n' >> "$_spec_dir"/releasedescription.txt
+    
     if [ ! "$_mark" ]
     then
         printf '\nThese spectrals were generated using [url=https://redacted.ch/forums.php?action=viewthread&threadid=33769]csfru[/url]\n' >> "$_spec_dir"/releasedescription.txt
