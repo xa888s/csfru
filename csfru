@@ -86,10 +86,10 @@ main() {
             SONGLENGTH=$(ffmpeg -i "$SONG" 2>&1 | grep Duration | sed -e "s/\,.*//" -e "s/^[^:]*://" -e "s/^[^:]*://" | cut -f 1 -d'.')
             printf ' %s\n' "$SONGLENGTH" >> "$_spec_dir/albumdescription.txt" 
         done
-        xclip -sel c < "$_spec_dir/albumdescription.txt"
+        xclip -sel c < "$_spec_dir/albumdescription.txt" || pbcopy < "$_spec_dir/albumdescription.txt"
         printf "Copied albumdescription.txt to clipboard\n"
         read -rp "Press enter when done pasting."
-        xsel -bc
+        xsel -bc || pbcopy < /dev/null
         printf "[spoiler=Spectrograms]" > "$_spec_dir/releasedescription.txt"
         for SONG in "${_song_list[@]}";
         do
@@ -112,13 +112,13 @@ main() {
         then
             printf "\nThese spectrals were generated using [url=https://redacted.ch/forums.php?action=viewthread&threadid=33769]csfru[/url]\n" >> "$_spec_dir/releasedescription.txt"
         fi
-        xclip -sel c < "$_spec_dir/releasedescription.txt"
+        xclip -sel c < "$_spec_dir/releasedescription.txt" || pbcopy < "$_spec_dir"/releasedescription.txt
         printf "Copied releasedescription.txt to clipboard!\n"
 
         if [ "$_rm" ]
         then
             read -rp "Press enter when done pasting."
-            xsel -bc
+            xsel -bc || pbcopy < /dev/null
             printf 'Removing %s\n' "$_spec_dir"
             rm -rf "${_spec_dir:?}"/*
             rmdir "$_spec_dir"
