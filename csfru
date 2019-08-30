@@ -48,31 +48,45 @@ upload() {
 }
 
 get_song_list() {
+    # populate an array with the list of songs in album dir
     _song_list=("$_album_dir"/*.flac)
+
     local _song_list_temp=()
+    # create a new array with only basenames
     for _song in "${_song_list[@]}"
     do
         _song_list_temp+=("${_song##*/}")
     done
+    # assign that array back to the original
     mapfile -t _song_list < <(printf '%s\n' "${_song_list_temp[@]}" | sort -g)
     unset _song_list_temp
+}
+
+create_specs() {
+    # attempt to create directories for specs and if it fails exit
+    mkdir -p "$_spec_dir"/zoomed "$_spec_dir"/normal || \
+        { printf "Couldn't create directories for spectrograms"; exit 1; }
+    
+    # create a zoomed and normal spectrogram for each song
+    for _song in "${_song_list[@]}";
+    do
+        local _song_full="$_album_dir"/"$_song"
+        local _spec="${_song%.*}.png"
+
+        sox "$_song_full" -n remix 1 spectrogram -x 3000 -y 513 -z 120 -w Kaiser \
+            -o "$_spec_dir"/normal/"$_spec" -t "${_song%.*}" 
+        
+        sox "$_song_full" -n remix 1 spectrogram -X 500 -y 1025 -z 120 -w Kaiser -S 1:00 -d 0:02 \
+            -o "$_spec_dir"/zoomed/"$_spec" -t "${_song%.*}" 
+
+        printf "Spectrograms of $_song created.\n"
+    done
 }
 
 main() {
     get_args "$@"
     get_song_list
-    mkdir -p "$_spec_dir"/Zoomed "$_spec_dir"/Normal || exit 1
-
-    for SONG in "${_song_list[@]}";
-    do
-        SONG="$_album_dir"/"$SONG"
-        OLD_SONG="$SONG"
-        SONG="${SONG##*/}"
-        SPECTROGRAM="${SONG%.*}.png"
-        sox "$OLD_SONG" -n remix 1 spectrogram -x 3000 -y 513 -z 120 -w Kaiser -o "$_spec_dir"/Normal/"$SPECTROGRAM" -t "${SONG%.*}" 
-        sox "$OLD_SONG" -n remix 1 spectrogram -X 500 -y 1025 -z 120 -w Kaiser -S 1:00 -d 0:02 -o "$_spec_dir"/Zoomed/"$SPECTROGRAM" -t "${SONG%.*}" 
-        echo "Spectrograms of $SONG created."
-    done
+    create_specs
 
     if [ "$_key" ]
     then
@@ -95,8 +109,8 @@ main() {
         do
             SONG="$_album_dir"/"$SONG"
             SONGNAME="${SONG##*/}"
-            SPECTROGRAMNORMALPATH="$_spec_dir/Normal/${SONGNAME%.*}.png"
-            SPECTROGRAMZOOMEDPATH="$_spec_dir/Zoomed/${SONGNAME%.*}.png"
+            SPECTROGRAMNORMALPATH="$_spec_dir/normal/${SONGNAME%.*}.png"
+            SPECTROGRAMZOOMEDPATH="$_spec_dir/zoomed/${SONGNAME%.*}.png"
             echo "Uploading ${SONGNAME%.*}"
             if [[ "$SONG" == *","* ]]
             then
