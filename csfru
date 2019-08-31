@@ -10,7 +10,7 @@ get_args() {
             i) _album_dir=$(realpath -e "${OPTARG}"); _spec_dir="$_album_dir"/spectrograms;;
             o) _spec_dir=$(realpath "${OPTARG}"/"${_album_dir##*/}");;
             r) _rm="true";;
-            w) _mark="true";;
+            w) _credit="true";;
             *) usage;;
         esac
     done
@@ -25,8 +25,8 @@ usage() {
     printf '\n-o spectrogram directory (if not specified will output in album directory)'
     printf '\n-r (remove after upload)'
     printf '\n-w [remove credit (link to the forum post)]\n'
-    exit
-}
+    exit 1
+} 1>&2
 
 get_song_list() {
     # populate an array with the list of songs in album dir
@@ -68,12 +68,17 @@ create_specs() {
 get_song_length() {
     printf 'Creating albumdescription.txt\n'
     printf 'Tracklist:\n\n' > "$_spec_dir"/albumdescription.txt
+
+    # get duration of each song with ffmpeg
     for _song in "${_song_list[@]}";
     do
         local _song_full="$_album_dir"/"$_song"
         printf '%s' "${_song%.*}" >> "$_spec_dir"/albumdescription.txt
         local _song_length=""
-        _song_length=$(ffmpeg -i "$_song_full" 2>&1 | grep Duration | sed -e 's/\,.*//' -e 's/^[^:]*://' -e 's/^[^:]*://' | cut -f 1 -d'.')
+        _song_length=$(ffmpeg -i "$_song_full" 2>&1 | \
+            grep Duration | \
+            sed -e 's/\,.*//' -e 's/^[^:]*://' -e 's/^[^:]*://' | \
+            cut -f 1 -d'.')
         printf ' %s\n' "$_song_length" >> "$_spec_dir"/albumdescription.txt
     done
     { xclip -sel c || pbcopy; } < "$_spec_dir"/albumdescription.txt > /dev/null 2>&1
@@ -105,6 +110,7 @@ upload() {
 release() {
     get_song_length
 
+    # start releasedescription.txt
     printf '[spoiler=Spectrograms]' > "$_spec_dir"/releasedescription.txt
     
     for _song in "${_song_list[@]}";
@@ -126,7 +132,8 @@ release() {
 
     printf '[/spoiler]\n' >> "$_spec_dir"/releasedescription.txt
     
-    if [ ! "$_mark" ]
+    # add credit (to description not image) if it hasn't been explicitly removed
+    if [ ! "$_credit" ]
     then
         printf '\nThese spectrals were generated using [url=https://redacted.ch/forums.php?action=viewthread&threadid=33769]csfru[/url]\n' >> "$_spec_dir"/releasedescription.txt
     fi
@@ -134,13 +141,13 @@ release() {
     { xclip -sel c || pbcopy; } < "$_spec_dir"/releasedescription.txt > /dev/null 2>&1
     printf 'Copied releasedescription.txt to clipboard!\n'
 
+    # clean up if -r is specified
     if [ "$_rm" ]
     then
         read -rp 'Press enter when done pasting.'
         { xclip -sel c || pbcopy; } < /dev/null > /dev/null 2>&1
         printf 'Removing %s\n' "$_spec_dir"
-        rm -rf "${_spec_dir:?}"/*
-        rmdir "$_spec_dir"
+        rm -rf "${_spec_dir:?}"
     fi
 }
 
