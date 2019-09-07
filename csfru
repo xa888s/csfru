@@ -54,11 +54,11 @@ create_specs() {
         local _song_full="$_album_dir"/"$_song"
         local _spec="${_song%.*}.png"
 
-        sox "$_song_full" -n remix 1 spectrogram -x 3000 -y 513 -z 120 -w Kaiser \
-            -o "$_spec_dir"/normal/"$_spec" -t "${_song%.*}" 
+        sox "$_song_full" -n remix 1 spectrogram -x 3000 -y 513 -z 120 -w Kaiser -t "${_song%.*}" \
+            -o "$_spec_dir"/normal/"$_spec"
         
-        sox "$_song_full" -n remix 1 spectrogram -X 500 -y 1025 -z 120 -w Kaiser -S 1:00 -d 0:02 \
-            -o "$_spec_dir"/zoomed/"$_spec" -t "${_song%.*}" 
+        sox "$_song_full" -n remix 1 spectrogram -X 500 -y 1025 -z 120 -w Kaiser -S 1:00 -d 0:02 -t "${_song%.*}" \
+            -o "$_spec_dir"/zoomed/"$_spec"
 
         printf 'Spectrograms of %s created.\n' "$_song"
     done
@@ -100,7 +100,7 @@ upload() {
     
     # report progress to user
     printf '%s %s has been uploaded.\n' "$_song" "$_type"
-    printf '%s\n' "$_song" "$_type" >> "$_spec_dir"/releasedescription.txt
+    printf '%s\n' "$_type" >> "$_spec_dir"/releasedescription.txt
 
     # append name to file
     printf '[img]%s[/img]\n' "$_link" >> "$_spec_dir"/releasedescription.txt
