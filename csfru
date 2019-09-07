@@ -100,10 +100,10 @@ upload() {
     
     # report progress to user
     printf '%s %s has been uploaded.\n' "$_song" "$_type"
-    printf '%s %s\n' "$_song" "$_type" >> "$_spec_dir"/releasedescription.txt
+    printf '%s\n' "$_song" "$_type" >> "$_spec_dir"/releasedescription.txt
 
     # append name to file
-    printf '[img]%s[/img]\n\n' "$_link" >> "$_spec_dir"/releasedescription.txt
+    printf '[img]%s[/img]\n' "$_link" >> "$_spec_dir"/releasedescription.txt
 }
 
 # make release description and upload each spectrogram
@@ -119,6 +119,9 @@ release() {
         local _spec_zoom_path="$_spec_dir"/zoomed/"${_song%.*}".png
 
         printf 'Uploading %s\n' "${_song%.*}"
+
+        # start song spoiler
+        printf '[spoiler=%s]' "${_song%.*}" >> "$_spec_dir"/releasedescription.txt
         
         if [[ "$_album_dir"/"$_song" == *','* ]]
         then
@@ -128,6 +131,9 @@ release() {
             upload "$(realpath "$_spec_norm_path")" "$_song" '(Normal)'
             upload "$(realpath "$_spec_zoom_path")" "$_song" '(Zoomed)'
         fi
+
+        # end song spoiler
+        printf '[/spoiler]' >> "$_spec_dir"/releasedescription.txt
     done
 
     printf '[/spoiler]\n' >> "$_spec_dir"/releasedescription.txt
