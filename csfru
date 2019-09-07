@@ -75,10 +75,10 @@ get_song_length() {
         local _song_full="$_album_dir"/"$_song"
         printf '%s' "${_song%.*}" >> "$_spec_dir"/albumdescription.txt
         local _song_length=""
-        _song_length=$(ffmpeg -i "$_song_full" 2>&1 | \
-            grep Duration | \
-            sed -e 's/\,.*//' -e 's/^[^:]*://' -e 's/^[^:]*://' | \
-            cut -f 1 -d'.')
+        _song_length=$(ffmpeg -i "$_song_full" 2>&1 \
+            | grep 'Duration' \
+            | sed -e 's/\,.*//' -e 's/^[^:]*://' -e 's/^[^:]*://' \
+            | cut -f 1 -d'.')
         printf ' %s\n' "$_song_length" >> "$_spec_dir"/albumdescription.txt
     done
     { xclip -sel c || pbcopy; } < "$_spec_dir"/albumdescription.txt > /dev/null 2>&1
@@ -94,9 +94,9 @@ upload() {
     local _type="$3"
 
     # uploading file
-    _link=$(curl -F "file-upload[0]=@${_spec}" -F api_key="$_key" 'https://ptpimg.me/upload.php' | \
-        awk -F ':|,' '!(NR%4){print p$2}{p=$2}'| \
-        sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
+    _link=$(curl -F "file-upload[0]=@${_spec}" -F api_key="$_key" 'https://ptpimg.me/upload.php' \
+        | awk -F ':|,' '!(NR%4){print p$2}{p=$2}'\
+        | sed 's/^.*"\(.*\)" "\(.*\)".*$/https:\/\/ptpimg.me\/\1.\2/')
     
     # report progress to user
     printf '%s %s has been uploaded.\n' "$_song" "$_type"
